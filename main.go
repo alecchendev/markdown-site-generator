@@ -23,7 +23,7 @@ func main() {
 
 	// Get src directory
 	if len(os.Args) < 2 {
-		srcDir = "."
+		srcDir = "./src"
 	} else {
 		if len(os.Args) > 2 {
 			fmt.Println("Unnecessary extra arguments")

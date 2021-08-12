@@ -1,4 +1,4 @@
-module github.com/alecchendev/markdown-site-generator
+module github.com/alecchendev/marvon
 
 go 1.16
 
