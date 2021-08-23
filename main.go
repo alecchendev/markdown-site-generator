@@ -18,18 +18,39 @@ var staticDir = "static"
 var contentDir = "content"
 var layoutFile = "layout.html"
 var fillDiv = "<div id=\"content\"></div>"
+var routerFile = "router.js"
+var scriptTags = `
+<script src="static/router.js"></script>
+<script src="static/routes.js"></script>
+<script src="static/index.js"></script>
+`
 
 func main() {
 
 	// Get src directory
+	fmt.Println(os.Args)
+	ccr := false // client side routing
 	if len(os.Args) < 2 {
 		srcDir = "./src"
 	} else {
-		if len(os.Args) > 2 {
-			fmt.Println("Unnecessary extra arguments")
+		if os.Args[1] == "-r" {
+			if len(os.Args) == 2 {
+				srcDir = "./src"
+			} else {
+				srcDir = os.Args[2]
+			}
+			ccr = true
+			if len(os.Args) > 3 {
+				fmt.Println("Unnecessary extra arguments")
+			}
+		} else {
+			srcDir = os.Args[1]
+			if len(os.Args) > 2 {
+				fmt.Println("Unnecessary extra arguments")
+			}
 		}
-		srcDir = os.Args[1]
 	}
+
 	fmt.Printf("Source directory: %v\n", srcDir)
 
 	// Create build directory
@@ -47,6 +68,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// err = copy.Copy(routerFile, strings.Join([]string{buildDir, staticDir, routerFile}, "/"))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	fmt.Println("Copied static assets")
 
 	// Read in layout.html
@@ -55,6 +80,12 @@ func main() {
 		log.Fatal(err)
 	}
 	layoutStr := string(layout)
+
+	// Add js scripts if client-side routing
+	if ccr {
+		idx := strings.Index(layoutStr, "</body>")
+		layoutStr = layoutStr[:idx] + scriptTags + layoutStr[idx:]
+	}
 
 	// Check if div content is even there
 	if !strings.Contains(layoutStr, fillDiv) {
@@ -87,11 +118,16 @@ func main() {
 		parser := parser.NewWithExtensions(extensions)
 		html := markdown.ToHTML(fileBytes, parser, nil) // []uint8
 
-		// Create html file from layout.html - fill with markdown content
-		output := strings.Replace(layoutStr, fillDiv, string(html), 1)
-		err = ioutil.WriteFile(filename, []byte(output), 0644)
-		if err != nil {
-			log.Fatal(err)
+		if !ccr {
+			// Populate routes.js with markdown content
+
+		} else {
+			// Create html file from layout.html - fill with markdown content
+			output := strings.Replace(layoutStr, fillDiv, string(html), 1)
+			err = ioutil.WriteFile(filename, []byte(output), 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		fmt.Print("Done\n")
 

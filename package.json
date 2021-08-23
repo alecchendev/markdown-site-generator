@@ -1,0 +1,19 @@
+{
+  "name": "marvon",
+  "version": "1.0.0",
+  "description": "A simple markdown to static site build tool. Essentially Hugo for minimalists.",
+  "main": "index.js",
+  "scripts": {
+    "start": "go run . && http-server build build/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alecchendev/marvon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alecchendev/marvon/issues"
+  },
+  "homepage": "https://github.com/alecchendev/marvon#readme"
+}
