@@ -17,7 +17,7 @@ class Router {
 
 		// Append the template of the matched route to the DOM, 
 		// inside the element with attribute data-router-outlet.
-		const routerOutletElement = document.querySelectorAll('[data-router-outlet]')[0];
+		const routerOutletElement = document.getElementById("content");
 		routerOutletElement.innerHTML = matchedRoute.template;
 	}
 
@@ -53,3 +53,5 @@ class Router {
 		this.loadRoute(...pathSegments );
 	}
 }
+
+export const router = new Router(routes);

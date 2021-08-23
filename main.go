@@ -21,8 +21,6 @@ var fillDiv = "<div id=\"content\"></div>"
 var routerFile = "router.js"
 var scriptTags = `
 <script src="static/router.js"></script>
-<script src="static/routes.js"></script>
-<script src="static/index.js"></script>
 `
 
 func main() {
@@ -82,8 +80,13 @@ func main() {
 	layoutStr := string(layout)
 
 	// Add js scripts if client-side routing
+	router, err := ioutil.ReadFile(strings.Join([]string{buildDir, staticDir, routerFile}, "/"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	routerStr := string(router)
 	if ccr {
-		idx := strings.Index(layoutStr, "</body>")
+		idx := strings.Index(layoutStr, "</head>")
 		layoutStr = layoutStr[:idx] + scriptTags + layoutStr[idx:]
 	}
 
@@ -97,6 +100,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// add beginning const routes = [
+	initRoutesStr := "const routes = ["
+	routerStr = initRoutesStr + routerStr
+	routerIdx := len(initRoutesStr)
 
 	// Iterate through .md files in content
 	for _, entry := range contentFiles {
@@ -118,9 +126,13 @@ func main() {
 		parser := parser.NewWithExtensions(extensions)
 		html := markdown.ToHTML(fileBytes, parser, nil) // []uint8
 
-		if !ccr {
+		if ccr {
 			// Populate routes.js with markdown content
-
+			newRoute := "{" +
+				"path: `/" + strings.Replace(entry.Name(), ".md", "", 1) + "`," +
+				"template: `" + string(html) + "`,},"
+			routerStr = routerStr[:routerIdx] + newRoute + routerStr[routerIdx:]
+			routerIdx += len(newRoute)
 		} else {
 			// Create html file from layout.html - fill with markdown content
 			output := strings.Replace(layoutStr, fillDiv, string(html), 1)
@@ -132,6 +144,24 @@ func main() {
 		fmt.Print("Done\n")
 
 	}
+
+	if ccr {
+		// add end ]; for routes
+		routerStr = routerStr[:routerIdx] + "];" + routerStr[routerIdx:]
+
+		// write to router.js
+		err = ioutil.WriteFile(strings.Join([]string{buildDir, staticDir, routerFile}, "/"), []byte(routerStr), 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = ioutil.WriteFile(strings.Join([]string{buildDir, "index.html"}, "/"), []byte(layoutStr), 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}
+
 	fmt.Print("Build complete\n")
 
 }
